@@ -41,7 +41,6 @@ module SBCP
 			SteamSocket.timeout = 1000
 			@port = port
 			@pass = pass
-			connect()
 		end
 
 		def connect
@@ -52,13 +51,12 @@ module SBCP
 			begin
 				@rcon = StarboundRConServer.new("127.0.0.1:#{@port}")
 				@rcon.rcon_auth(@pass)
-				say("<%= color('RCon Connection Established.', :success) %>")
 				$VERBOSE = original_verbosity
 				$log.debug("RCon Connection Established.\n")
 				return true
 			rescue
+				@rcon.disconnect()
 				if tries < 3
-					@rcon.disconnect()
 					tries += 1
 					$log.warn("RCon Connection Failure. Retrying...\n")
 					retry
@@ -76,20 +74,14 @@ module SBCP
 			# Starbound doesn't seem to always give a reply, even though the commands work
 			reply = nil
 			begin
-				reply = @rcon.rcon_exec(command)
-			rescue Exception
-				@rcon.disconnect()
-				say("<%= color('RCon Error, Attempting to reconnect.', :warning) %>")
-				$log.error{"RCon Connection Error: #{$!}\n"}				
 				if connect()
-					begin
-						reply = @rcon.rcon_exec(command)
-					rescue
-						say("<%= color('Failed to execute RCon request.', :warning) %>")
-						$log.fatal("Failed to execute RCon request.\n")
-					end
+					reply = @rcon.rcon_exec(command)
 				end
+			rescue Exception
+				say("<%= color('Failed to execute RCon request.', :warning) %>")
+				$log.fatal("Failed to execute RCon request.\n")
 			end
+			@rcon.disconnect()
 			return reply
 		end
 	end
