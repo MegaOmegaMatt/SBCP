@@ -57,6 +57,8 @@ module SBCP
 			if false == Plugin.hook("parse", line)
 				if line.include? "Chat:"
 					parse_chat(line)
+				elsif line.include? "RCON"
+					$log.debug(line)
 				else
 					case line
 					when /Starting UniverseServer with UUID:/
@@ -113,7 +115,7 @@ module SBCP
 						character = $1
 						command = $2
 						args = $3
-						$log.debug("Received command #{command}:#{args} from #{character}")
+						$log.debug("Received command #{command}:#{args} from #{character}.\n")
 						if false == Plugin.hook("command", character, command, args)
 							id = get_id_from_name(character)
 							case command
@@ -123,8 +125,9 @@ module SBCP
 								@command_handler.execute(id, command, args)
 							end
 						end
+					else
+						log(line)
 					end
-					log(line)
 				end
 			end
 

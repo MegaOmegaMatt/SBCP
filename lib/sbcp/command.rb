@@ -352,6 +352,7 @@ module SBCP
 		end
 
 		def self.poll_locations()
+			$log.debug("Polling all player locations.\n")
 			now = Time.now()
 			if Starbound::SESSION[:info][:last_location_poll].nil? or (now - Starbound::SESSION[:info][:last_location_poll]) >= 5
 				Starbound::SESSION[:info][:last_location_poll] = now
@@ -359,9 +360,11 @@ module SBCP
 					v[:location] = get_location(k)
 				end
 			end
+			$log.debug("Polling complete.\n")
 		end
 
 		def self.get_location(id)
+			$log.debug("Requesting player location.\n")
 			reply = $rcon.execute("whereis #{Starbound::SESSION[:players][id][:nick]}")
 			if not reply.nil?
 				case reply
@@ -376,6 +379,7 @@ module SBCP
 		end
 
 		def self.send_to_location(location, msg)
+			$log.debug("Sending message to all at location.\n")
 			Starbound::SESSION[:players].each_pair do |k,v|
 				if not v[:location].nil?
 					if v[:location][:world_id] == location[:world_id]
@@ -383,12 +387,14 @@ module SBCP
 					end
 				end
 			end
+			$log.debug("Location Message sent.\n")
 		end
 
 		def self.get_id_from_nick(nick)
 			Starbound::SESSION[:players].each_pair do |k,v|
 				return k if v[:nick] == nick
 			end
+			$log.warn{"Couldn't get id for nick: #{nick}\n"}
 			return nil
 		end
 	end
@@ -466,7 +472,7 @@ module SBCP
 	 					Command.send(cmd[:handler], user_id, args)
 					rescue
 						say("<%= color('Error executing chat command.', :warning) %>")
-						$log.debug("Chat Command Error: #{$!}\n")
+						$log.error{"Chat Command Error: #{$!}\n"}
 					end
  					return
 	 			end
