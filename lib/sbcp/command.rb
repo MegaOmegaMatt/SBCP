@@ -462,8 +462,13 @@ module SBCP
 		 def execute(user_id, command, args)
 	 		@@commands.each do |cmd|
 	 			if command == cmd[:command]
-	 				Command.send(cmd[:handler], user_id, args)
-	 				return
+					begin
+	 					Command.send(cmd[:handler], user_id, args)
+					rescue
+						say("<%= color('Error executing chat command.', :warning) %>")
+						$log.debug("Chat Command Error: #{$!}\n")
+					end
+ 					return
 	 			end
 	 		end
 		 end

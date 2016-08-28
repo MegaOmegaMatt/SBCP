@@ -38,19 +38,19 @@ module SBCP
 			@sb_config_parsed = JSON.parse(sb_config_raw)
 			@tmp = {}
 			if $settings['logging']['mode'] == 1 then
-				@log = Logger.new("#{$settings['logging']['storage']}/starbound.log", 'daily', $settings['logging']['lifetime'])
+				$log = Logger.new("#{$settings['logging']['storage']}/starbound.log", 'daily', $settings['logging']['lifetime'])
 			elsif $settings['logging']['mode'] == 2 then
 				stamp = "#{Time.now.strftime("%m-%d-%Y-%H-%M-%S")}-starbound"
-				@log = Logger.new("#{$settings['logging']['storage']}/#{stamp}.log")
+				$log = Logger.new("#{$settings['logging']['storage']}/#{stamp}.log")
 			end
-			@log.formatter = proc { |severity, datetime, progname, msg| date_format = datetime.strftime("%H:%M:%S.%N")[0...-6]; "[#{date_format}] #{msg}" }
-			@log.level = Logger::INFO
-			@log.info("---------- SBCP is starting a new Starbound instance ----------\n")
+			$log.formatter = proc { |severity, datetime, progname, msg| date_format = datetime.strftime("%H:%M:%S.%N")[0...-6]; "[#{date_format}] #{msg}" }
+			$log.level = Logger::DEBUG
+			$log.info("---------- SBCP is starting a new Starbound instance ----------\n")
 			@command_handler = CommandHandler.new()
 		end
 
 		def log(string)
-			@log.info(string)
+			$log.info(string)
 		end
 
 		def parse(line)
@@ -101,7 +101,7 @@ module SBCP
 		end
 
 		def close
-			@log.close
+			$log.close
 		end
 
 		private
@@ -113,6 +113,7 @@ module SBCP
 						character = $1
 						command = $2
 						args = $3
+						$log.debug("Received command #{command}:#{args} from #{character}")
 						if false == Plugin.hook("command", character, command, args)
 							id = get_id_from_name(character)
 							case command

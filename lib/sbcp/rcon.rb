@@ -53,13 +53,17 @@ module SBCP
 				@rcon.rcon_auth(@pass)
 				say("<%= color('RCon Connection Established.', :success) %>")
 				$VERBOSE = original_verbosity
+				$log.debug("RCon Connection Established.\n")
 				return true
 			rescue
 				if tries < 3
+					@rcon.disconnect()
 					tries += 1
+					$log.debug("RCon Connection Failure. Retrying...\n")
 					retry
 				else
 					say("<%= color('RCon Connection failed.', :warning) %>")
+					$log.debug("RCon Connection Failed.\n")
 				end
 			end
 			$VERBOSE = original_verbosity
@@ -73,13 +77,15 @@ module SBCP
 			begin
 				reply = @rcon.rcon_exec(command)
 			rescue Exception
-				say("<%= color('RCon Error: #{$!}', :warning) %>")
-				say("<%= color('Attempting to reconnect.', :warning) %>")
+				@rcon.disconnect()
+				say("<%= color('RCon Error, Attempting to reconnect.', :warning) %>")
+				$log.debug("RCon Connection Error: #{$!}\n")				
 				if connect()
 					begin
 						reply = @rcon.rcon_exec(command)
 					rescue
 						say("<%= color('Failed to execute RCon request.', :warning) %>")
+						$log.debug("Failed to execute RCon request.\n")
 					end
 				end
 			end
